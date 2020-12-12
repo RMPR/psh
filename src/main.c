@@ -1,7 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <unistd.h>
 #define PROMPT_STRING_SIZE 100
+#define ARGC 64
 
 char* psh_read_config();
 void psh_loop(char* prompt_string);
@@ -17,6 +22,7 @@ int main(int argc, char **argv) {
     // exit succesfully the shell
     return EXIT_SUCCESS;
 }
+
 
 char* psh_read_config(char* prompt_string) {
     // The config consists in the char displayed in the shell
@@ -47,46 +53,63 @@ void psh_loop(char* prompt_string) {
         args = psh_split_args(line);
         status = psh_execute_line(args);
     } while (true);
+
+    free(line);
+    free(args);
 }
 
 char* psh_read_line(void) {
     // Read the line to put it in a string
-    int buf_size = PROMPT_STRING_SIZE;
-    char* line;
-    int position = 0;
-    char c;
+    char* line = NULL;
+    size_t len = 0;
+    ssize_t chars_read;
 
-    line = malloc((buf_size + 1) * sizeof(char));
+    chars_read = getline(&line, &len, stdin);
+    line[chars_read-1] = ' ';
+    printf("p");
+    for(int i=0; i < chars_read; i++) printf("s");
+    printf("h");
+    return line;
 
-    if (!line) {
-        fprintf(stderr, "Memory allocation for the line failed");
-    }
-    line[buf_size] = '\0';
-
-    while(true) {
-        c = getchar();
-
-        if (c == EOF || c == '\n'){
-            return line;            
-        } else {
-            line[position] = c;
-        }
-
-        if(position == buf_size){
-            buf_size = 2 * PROMPT_STRING_SIZE;
-            line = realloc(line, buf_size * sizeof(char));
-
-            if (!line) {
-                fprintf(stderr, "Memory reallocation failed is the line too long?"); 
-            }
-        }
-    }
 }
 
 char** psh_split_args(char* line){
-    return NULL;
+    // Split line in args to feed the execution function
+    char** args = malloc(ARGC * sizeof(char*));
+    int i = 0;
+
+    if(!args) {
+        fprintf(stderr, "Allocation failed");
+        exit(EXIT_FAILURE);
+    }
+
+    for(char* arg = strtok(line, " "); arg != NULL; arg = strtok(NULL, " "), i++) {
+        args[i] = strdup(arg);
+
+        if(i == ARGC-1) {
+            args = realloc(args, 2 * ARGC * sizeof(char*)); 
+        }
+    }
+
+    return args;
 }
 
 int psh_execute_line(char** args){
+    // Execute the command
+    pid_t pid;
+    int status = 0;
+
+    if ((pid = fork()) < 0){
+        fprintf(stderr, "Forking process failed");
+        exit(EXIT_FAILURE);
+    } else if (pid == 0) {
+        if(execvp(args[0], args) < 0) {
+            fprintf(stderr, "Execution of the command failed");
+            _exit(EXIT_FAILURE);
+        }
+    } else {
+        waitpid(pid, &status, 0);
+    }
+
     return EXIT_SUCCESS;
 }
