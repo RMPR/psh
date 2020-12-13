@@ -1,4 +1,6 @@
 # psh
+![psh demo](https://github.com/RMPR/psh/raw/master/psh.gif)
+
 This is a simple shell made for learning purpose.
 
 # Usage
