@@ -1,3 +1,4 @@
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -52,11 +53,15 @@ void psh_loop(char* prompt_string) {
     char* line = NULL;
     char** args = NULL;
     int status = 0;
+    char wd[PATH_MAX];
+
     do {
         printf("%s", prompt_string);
         line = psh_read_line();        
         args = psh_split_args(line);
         status = psh_execute_line(args);
+        getcwd(wd, PATH_MAX);
+        printf("%s", wd);
     } while (true);
 
     free(line);
@@ -71,9 +76,7 @@ char* psh_read_line(void) {
 
     chars_read = getline(&line, &len, stdin);
     line[chars_read-1] = ' ';
-    printf("\np");
-    for(int i=0; i < chars_read; i++) printf("s");
-    printf("h");
+
     return line;
 
 }
@@ -130,7 +133,7 @@ int psh_execute_line(char** args) {
 int psh_cd(char* path) {
     int status = 0;
     if ((status = chdir(path)) != 0) {
-        fprintf(stderr, "Error when changing directories"); 
+        fprintf(stderr, "\n Error when changing directories \n"); 
     }
     return status;
 }

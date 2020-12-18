@@ -16,5 +16,5 @@ It doesn't support piping and redirecting.
 Essentially `cd`, `exit` and `help`
 
 # Goodies
-I don't know why but I feel like it. After each command the Shell will print `pss...sh` with the number of `s` corresponding to the number of characters read. That's it, the 
-length of the command is proportional to the prompt size.
+I don't know why but I feel like it. After each command the Shell will print ~~`pss...sh` with the number of `s` corresponding to the number of characters read. That's it, the 
+length of the command is proportional to the prompt size.~~ the current working directory followed by the content of psh.cfg
